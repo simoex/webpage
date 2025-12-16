@@ -98,7 +98,7 @@
     <!-- A-Frame Scene -->
     <a-scene
         embedded
-        arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3; trackingMethod: best;"
+        arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3; trackingMethod: best; sourceWidth: 1280; sourceHeight: 960; displayWidth: 1280; displayHeight: 960;"
         vr-mode-ui="enabled: false"
         renderer="logarithmicDepthBuffer: true; precision: medium; antialias: true; alpha: true;"
         loading-screen="enabled: false">
@@ -128,7 +128,7 @@
                 id="solarEntity"
                 gltf-model="#solarModel"
                 position="0 0 0"
-                scale="0.5 0.5 0.5"
+                scale="1 1 1"
                 rotation="0 0 0"
                 animation="property: rotation; to: 0 360 0; loop: true; dur: 20000; easing: linear">
             </a-entity>
@@ -159,7 +159,7 @@
         </a-marker>
 
         <!-- Câmara -->
-        <a-entity camera></a-entity>
+        <a-entity camera zoom="0.5"></a-entity>
     </a-scene>
 
     <script>
