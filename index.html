@@ -2,14 +2,24 @@
 <html lang="pt">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <title>AR Solar System</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/aframe/1.4.2/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.5/aframe/build/aframe-ar-nft.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
     <style>
-        body {
+        * {
             margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html, body {
+            width: 100%;
+            height: 100%;
             overflow: hidden;
+            position: fixed;
             font-family: Arial, sans-serif;
         }
         
@@ -19,7 +29,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.9);
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -49,33 +59,54 @@
         
         #instructions {
             position: fixed;
-            top: 20px;
+            top: 10px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.7);
+            background: rgba(0, 0, 0, 0.8);
             color: white;
-            padding: 15px 25px;
+            padding: 12px 20px;
             border-radius: 10px;
             z-index: 1000;
             text-align: center;
-            max-width: 80%;
+            max-width: 90%;
+            font-size: 14px;
         }
         
         #status {
             position: fixed;
-            bottom: 20px;
+            bottom: 10px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.7);
+            background: rgba(0, 0, 0, 0.8);
             color: white;
-            padding: 10px 20px;
-            border-radius: 5px;
+            padding: 8px 16px;
+            border-radius: 8px;
             z-index: 1000;
-            font-size: 14px;
+            font-size: 13px;
         }
         
         .status-active {
-            background: rgba(0, 150, 0, 0.8) !important;
+            background: rgba(0, 150, 0, 0.9) !important;
+        }
+        
+        a-scene {
+            width: 100vw !important;
+            height: 100vh !important;
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+        }
+        
+        @media (max-width: 768px) {
+            #instructions {
+                font-size: 12px;
+                padding: 10px 15px;
+            }
+            
+            #status {
+                font-size: 12px;
+                padding: 6px 12px;
+            }
         }
     </style>
 </head>
@@ -83,154 +114,150 @@
     <div id="loading">
         <div class="spinner"></div>
         <p>A carregar experiência AR...</p>
-        <p style="font-size: 12px;">Por favor, permita o acesso à câmara</p>
+        <p style="font-size: 12px; margin-top: 10px;">Preparando o reconhecimento de imagem...</p>
     </div>
     
     <div id="instructions">
         📱 Aponte a câmara para a imagem "solar.jpg"
     </div>
     
-    <div id="status">Procurando marcador...</div>
+    <div id="status">A inicializar...</div>
 
-    <!-- Cena A-Frame com AR.js -->
+    <!-- Cena A-Frame com MindAR -->
     <a-scene
-        embedded
-        arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3; sourceWidth: 1280; sourceHeight: 960; displayWidth: 1280; displayHeight: 960; videoTexture: true;"
+        mindar-image="imageTargetSrc: solar.mind; filterMinCF:0.0001; filterBeta: 0.01; warmupTolerance: 5; missTolerance: 5"
+        color-space="sRGB"
+        renderer="colorManagement: true; physicallyCorrectLights: true; precision: medium; antialias: true; alpha: true"
         vr-mode-ui="enabled: false"
-        renderer="logarithmicDepthBuffer: true; precision: medium; antialias: true; alpha: true;"
-        loading-screen="enabled: false">
+        device-orientation-permission-ui="enabled: false">
         
         <!-- Assets -->
         <a-assets>
             <!-- Modelo 3D -->
             <a-asset-item id="solarModel" src="solar.glb"></a-asset-item>
-            
-            <!-- Marcador de imagem -->
-            <img id="solarMarker" src="solar.jpg" crossorigin="anonymous">
         </a-assets>
         
-        <!-- Marcador AR baseado em imagem -->
-        <a-marker
-            type="pattern"
-            preset="custom"
-            url="solar.patt"
-            smooth="true"
-            smoothCount="10"
-            smoothTolerance="0.01"
-            smoothThreshold="5"
-            raycaster="objects: .clickable"
-            emitevents="true"
-            cursor="fuse: false; rayOrigin: mouse;"
-            id="markerA">
-            
+        <!-- Entidade do marcador de imagem -->
+        <a-entity mindar-image-target="targetIndex: 0">
             <!-- Grupo principal do modelo -->
-            <a-entity id="model-container" position="0 0 0" rotation="0 0 0" scale="1 1 1">
+            <a-entity id="model-container" position="0 0 0" rotation="0 0 0" scale="0.5 0.5 0.5">
                 <!-- Modelo 3D -->
                 <a-entity
                     gltf-model="#solarModel"
                     position="0 0 0"
-                    rotation="-90 0 0"
+                    rotation="0 0 0"
                     scale="1 1 1"
-                    animation-mixer="clip: *; loop: repeat; repetitions: Infinity"
-                    shadow="cast: true; receive: true">
+                    animation-mixer="clip: *; loop: repeat"
+                    class="clickable">
                 </a-entity>
                 
-                <!-- Iluminação ambiente -->
-                <a-entity light="type: ambient; color: #BBB; intensity: 0.8"></a-entity>
+                <!-- Iluminação ambiente suave -->
+                <a-light type="ambient" color="#FFFFFF" intensity="0.6"></a-light>
                 
                 <!-- Luz direcional principal -->
-                <a-entity light="type: directional; color: #FFF; intensity: 1.2; castShadow: true" 
-                          position="2 4 2"></a-entity>
+                <a-light type="directional" 
+                         color="#FFFFFF" 
+                         intensity="0.8"
+                         position="1 2 1"
+                         castShadow="true"></a-light>
                 
                 <!-- Luz de preenchimento -->
-                <a-entity light="type: point; color: #FFF; intensity: 0.5; distance: 10; decay: 2" 
-                          position="-2 2 2"></a-entity>
-                
-                <!-- Luz traseira suave -->
-                <a-entity light="type: point; color: #88CCFF; intensity: 0.3; distance: 10" 
-                          position="0 2 -2"></a-entity>
+                <a-light type="point" 
+                         color="#FFFFFF" 
+                         intensity="0.4" 
+                         position="-1 1 1"
+                         distance="5"
+                         decay="2"></a-light>
             </a-entity>
-        </a-marker>
+        </a-entity>
 
         <!-- Câmara -->
-        <a-entity camera 
-                  look-controls="enabled: false"
-                  zoom="1"
-                  fov="80"></a-entity>
+        <a-entity camera></a-entity>
     </a-scene>
 
     <script>
+        // Prevenir comportamentos de zoom no mobile
+        document.addEventListener('gesturestart', function(e) {
+            e.preventDefault();
+        });
+        
+        document.addEventListener('touchmove', function(e) {
+            if (e.scale !== 1) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+        
         // Gestão da interface
         const loadingEl = document.getElementById('loading');
         const statusEl = document.getElementById('status');
         const instructionsEl = document.getElementById('instructions');
+        const sceneEl = document.querySelector('a-scene');
         
-        // Ocultar loading após inicialização
-        setTimeout(() => {
-            loadingEl.classList.add('hidden');
-        }, 2000);
+        // Aguardar carregamento da cena
+        sceneEl.addEventListener('loaded', () => {
+            console.log('Cena carregada');
+            statusEl.textContent = 'Pronto! Procure o marcador...';
+            
+            setTimeout(() => {
+                loadingEl.classList.add('hidden');
+            }, 1000);
+        });
         
-        // Criar padrão de marcador personalizado (fallback)
-        // Nota: Em produção, você deve gerar um arquivo .patt usando ferramentas como AR.js Marker Training
-        // Para este exemplo, vamos usar detecção por barcode como alternativa
+        // Eventos de detecção do marcador
+        const target = document.querySelector('[mindar-image-target]');
         
-        // Evento quando o marcador é encontrado
-        const marker = document.querySelector('#markerA');
-        let markerFound = false;
-        
-        if (marker) {
-            marker.addEventListener('markerFound', () => {
-                markerFound = true;
+        if (target) {
+            // Quando o marcador é encontrado
+            target.addEventListener('targetFound', event => {
+                console.log('Marcador encontrado!');
                 statusEl.textContent = '✓ Marcador detetado!';
                 statusEl.classList.add('status-active');
                 instructionsEl.style.display = 'none';
                 
-                // Adicionar animação de entrada suave
+                // Animação de entrada
                 const modelContainer = document.getElementById('model-container');
                 if (modelContainer) {
                     modelContainer.setAttribute('animation', {
                         property: 'scale',
-                        from: '0.1 0.1 0.1',
-                        to: '1 1 1',
-                        dur: 800,
-                        easing: 'easeOutElastic'
+                        from: '0 0 0',
+                        to: '0.5 0.5 0.5',
+                        dur: 600,
+                        easing: 'easeOutBack'
                     });
                 }
             });
             
-            marker.addEventListener('markerLost', () => {
-                markerFound = false;
+            // Quando o marcador é perdido
+            target.addEventListener('targetLost', event => {
+                console.log('Marcador perdido');
                 statusEl.textContent = 'Procurando marcador...';
                 statusEl.classList.remove('status-active');
                 instructionsEl.style.display = 'block';
             });
         }
         
-        // Configuração alternativa usando barcode (se o padrão não funcionar)
-        // Substitua o a-marker acima por:
-        // <a-marker type="barcode" value="6">
+        // Tratamento de erros
+        sceneEl.addEventListener('arError', (event) => {
+            console.error('Erro AR:', event);
+            statusEl.textContent = '❌ Erro ao inicializar AR';
+            statusEl.style.background = 'rgba(150, 0, 0, 0.9)';
+            loadingEl.classList.add('hidden');
+        });
         
-        // Log de debug
-        console.log('AR.js inicializado');
-        console.log('Procure pelo marcador solar.jpg ou use um QR code como alternativa');
+        // Log de inicialização
+        console.log('MindAR Image Tracking inicializado');
+        console.log('Certifique-se de ter o arquivo solar.mind compilado');
         
-        // Verificar permissões de câmara
-        navigator.mediaDevices.getUserMedia({ 
-            video: { 
-                facingMode: 'environment',
-                width: { ideal: 1280 },
-                height: { ideal: 960 }
-            } 
-        })
-            .then(stream => {
-                console.log('Câmara autorizada');
-                stream.getTracks().forEach(track => track.stop());
-            })
-            .catch(err => {
-                console.error('Erro ao aceder à câmara:', err);
-                statusEl.textContent = '❌ Erro: Permita o acesso à câmara';
-                statusEl.style.background = 'rgba(150, 0, 0, 0.8)';
-            });
+        // Orientação do dispositivo
+        if (window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission === 'function') {
+            DeviceOrientationEvent.requestPermission()
+                .then(response => {
+                    if (response === 'granted') {
+                        console.log('Permissão de orientação concedida');
+                    }
+                })
+                .catch(console.error);
+        }
     </script>
 </body>
 </html>
