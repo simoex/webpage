@@ -1,263 +1,397 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="mobile-web-app-capable" content="yes">
-    <title>AR Solar System</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/aframe/1.4.2/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        html, body {
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            position: fixed;
-            font-family: Arial, sans-serif;
-        }
-        
-        #loading {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.9);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            color: white;
-            z-index: 9999;
-        }
-        
-        #loading.hidden {
-            display: none;
-        }
-        
-        .spinner {
-            border: 4px solid rgba(255, 255, 255, 0.3);
-            border-top: 4px solid white;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
-            margin-bottom: 20px;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        #instructions {
-            position: fixed;
-            top: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 12px 20px;
-            border-radius: 10px;
-            z-index: 1000;
-            text-align: center;
-            max-width: 90%;
-            font-size: 14px;
-        }
-        
-        #status {
-            position: fixed;
-            bottom: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 8px 16px;
-            border-radius: 8px;
-            z-index: 1000;
-            font-size: 13px;
-        }
-        
-        .status-active {
-            background: rgba(0, 150, 0, 0.9) !important;
-        }
-        
-        a-scene {
-            width: 100vw !important;
-            height: 100vh !important;
-            position: fixed !important;
-            top: 0 !important;
-            left: 0 !important;
-        }
-        
-        @media (max-width: 768px) {
-            #instructions {
-                font-size: 12px;
-                padding: 10px 15px;
-            }
-            
-            #status {
-                font-size: 12px;
-                padding: 6px 12px;
-            }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AR com MindAR</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-three.prod.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: Arial, sans-serif;
+      overflow: hidden;
+      background: #1a1a1a;
+    }
+    
+    #container {
+      width: 100vw;
+      height: 100vh;
+      position: relative;
+    }
+    
+    .overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      padding: 20px;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.7), transparent);
+      color: white;
+      z-index: 10;
+    }
+    
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: bold;
+      font-size: 18px;
+    }
+    
+    .status {
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      background: #3b82f6;
+      transition: background 0.3s;
+    }
+    
+    .status.detected {
+      background: #10b981;
+    }
+    
+    .instructions {
+      position: absolute;
+      bottom: 100px;
+      left: 20px;
+      right: 20px;
+      background: rgba(0,0,0,0.7);
+      color: white;
+      padding: 20px;
+      border-radius: 10px;
+      font-size: 14px;
+      z-index: 10;
+    }
+    
+    .instructions h3 {
+      margin-bottom: 10px;
+      font-size: 16px;
+    }
+    
+    .instructions ol {
+      margin-left: 20px;
+    }
+    
+    .instructions li {
+      margin: 5px 0;
+    }
+    
+    .button-container {
+      position: absolute;
+      bottom: 20px;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: center;
+      z-index: 10;
+    }
+    
+    .download-btn {
+      background: white;
+      color: #1a1a1a;
+      padding: 15px 30px;
+      border: none;
+      border-radius: 25px;
+      font-weight: bold;
+      font-size: 16px;
+      cursor: pointer;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+      transition: background 0.3s;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .download-btn:hover {
+      background: #f3f4f6;
+    }
+    
+    .error {
+      position: absolute;
+      bottom: 100px;
+      left: 20px;
+      right: 20px;
+      background: #ef4444;
+      color: white;
+      padding: 15px;
+      border-radius: 10px;
+      display: none;
+      z-index: 10;
+    }
+    
+    .camera-icon {
+      width: 24px;
+      height: 24px;
+    }
+  </style>
 </head>
 <body>
-    <div id="loading">
-        <div class="spinner"></div>
-        <p>A carregar experiência AR...</p>
-        <p style="font-size: 12px; margin-top: 10px;">Preparando o reconhecimento de imagem...</p>
+  <div id="container"></div>
+  
+  <div class="overlay">
+    <div class="header">
+      <div class="title">
+        <svg class="camera-icon" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+          <circle cx="12" cy="13" r="4"/>
+        </svg>
+        <span>MindAR Tracking</span>
+      </div>
+      <div id="status" class="status">Inicializando...</div>
     </div>
+  </div>
+  
+  <div id="error" class="error"></div>
+  
+  <div class="instructions">
+    <h3>Como usar:</h3>
+    <ol>
+      <li>Clique em "Baixar Imagem Alvo" e imprima ou exiba em outro dispositivo</li>
+      <li>Permita o acesso à câmera quando solicitado</li>
+      <li>Aponte a câmera para a imagem alvo</li>
+      <li>Veja o modelo 3D aparecer sobre a imagem!</li>
+    </ol>
+  </div>
+  
+  <div class="button-container">
+    <button class="download-btn" onclick="downloadTarget()">
+      <svg class="camera-icon" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="7 10 12 15 17 10"/>
+        <line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+      Baixar Imagem Alvo
+    </button>
+  </div>
+
+  <script>
+    let mindarThree;
+    let scene, camera, renderer, anchor, clock;
     
-    <div id="instructions">
-        📱 Aponte a câmara para a imagem "solar.jpg"
-    </div>
+    // Criar imagem alvo
+    function createTargetImage() {
+      const canvas = document.createElement('canvas');
+      canvas.width = 512;
+      canvas.height = 512;
+      const ctx = canvas.getContext('2d');
+      
+      // Fundo branco
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, 512, 512);
+      
+      // Desenhar padrão único para tracking
+      ctx.fillStyle = '#000000';
+      
+      // Quadrado externo
+      ctx.strokeStyle = '#000000';
+      ctx.lineWidth = 20;
+      ctx.strokeRect(50, 50, 412, 412);
+      
+      // Círculo central
+      ctx.beginPath();
+      ctx.arc(256, 256, 80, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Triângulos nos cantos
+      ctx.beginPath();
+      ctx.moveTo(100, 100);
+      ctx.lineTo(150, 100);
+      ctx.lineTo(100, 150);
+      ctx.closePath();
+      ctx.fill();
+      
+      ctx.beginPath();
+      ctx.moveTo(412, 100);
+      ctx.lineTo(362, 100);
+      ctx.lineTo(412, 150);
+      ctx.closePath();
+      ctx.fill();
+      
+      ctx.beginPath();
+      ctx.moveTo(100, 412);
+      ctx.lineTo(150, 412);
+      ctx.lineTo(100, 362);
+      ctx.closePath();
+      ctx.fill();
+      
+      ctx.beginPath();
+      ctx.moveTo(412, 412);
+      ctx.lineTo(362, 412);
+      ctx.lineTo(412, 362);
+      ctx.closePath();
+      ctx.fill();
+      
+      // Texto
+      ctx.font = 'bold 48px Arial';
+      ctx.fillStyle = '#ffffff';
+      ctx.textAlign = 'center';
+      ctx.fillText('AR', 256, 270);
+      
+      return canvas.toDataURL();
+    }
     
-    <div id="status">A inicializar...</div>
-
-    <!-- Cena A-Frame com MindAR -->
-    <a-scene
-        mindar-image="imageTargetSrc: solar.mind; filterMinCF:0.0001; filterBeta: 0.01; warmupTolerance: 5; missTolerance: 5"
-        color-space="sRGB"
-        renderer="colorManagement: true; physicallyCorrectLights: true; precision: medium; antialias: true; alpha: true"
-        vr-mode-ui="enabled: false"
-        device-orientation-permission-ui="enabled: false">
+    // Baixar imagem alvo
+    function downloadTarget() {
+      const dataUrl = createTargetImage();
+      const link = document.createElement('a');
+      link.download = 'ar-target.png';
+      link.href = dataUrl;
+      link.click();
+    }
+    
+    // Atualizar status
+    function updateStatus(text, detected = false) {
+      const statusEl = document.getElementById('status');
+      statusEl.textContent = text;
+      if (detected) {
+        statusEl.classList.add('detected');
+      } else {
+        statusEl.classList.remove('detected');
+      }
+    }
+    
+    // Mostrar erro
+    function showError(message) {
+      const errorEl = document.getElementById('error');
+      errorEl.textContent = message;
+      errorEl.style.display = 'block';
+      updateStatus('Erro');
+    }
+    
+    // Inicializar AR
+    async function initAR() {
+      try {
+        updateStatus('Carregando bibliotecas...');
         
-        <!-- Assets -->
-        <a-assets>
-            <!-- Modelo 3D -->
-            <a-asset-item id="solarModel" src="solar.glb"></a-asset-item>
-        </a-assets>
-        
-        <!-- Entidade do marcador de imagem -->
-        <a-entity mindar-image-target="targetIndex: 0">
-            <!-- Grupo principal do modelo -->
-            <a-entity id="model-container" position="0 0 0" rotation="0 0 0" scale="0.5 0.5 0.5">
-                <!-- Modelo 3D -->
-                <a-entity
-                    gltf-model="#solarModel"
-                    position="0 0 0"
-                    rotation="0 0 0"
-                    scale="1 1 1"
-                    animation-mixer="clip: *; loop: repeat"
-                    class="clickable">
-                </a-entity>
-                
-                <!-- Iluminação ambiente suave -->
-                <a-light type="ambient" color="#FFFFFF" intensity="0.6"></a-light>
-                
-                <!-- Luz direcional principal -->
-                <a-light type="directional" 
-                         color="#FFFFFF" 
-                         intensity="0.8"
-                         position="1 2 1"
-                         castShadow="true"></a-light>
-                
-                <!-- Luz de preenchimento -->
-                <a-light type="point" 
-                         color="#FFFFFF" 
-                         intensity="0.4" 
-                         position="-1 1 1"
-                         distance="5"
-                         decay="2"></a-light>
-            </a-entity>
-        </a-entity>
-
-        <!-- Câmara -->
-        <a-entity camera></a-entity>
-    </a-scene>
-
-    <script>
-        // Prevenir comportamentos de zoom no mobile
-        document.addEventListener('gesturestart', function(e) {
-            e.preventDefault();
+        // Aguardar carregamento das bibliotecas
+        await new Promise(resolve => {
+          if (window.MINDAR && window.THREE) {
+            resolve();
+          } else {
+            setTimeout(resolve, 1000);
+          }
         });
         
-        document.addEventListener('touchmove', function(e) {
-            if (e.scale !== 1) {
-                e.preventDefault();
-            }
-        }, { passive: false });
+        updateStatus('Iniciando câmera...');
         
-        // Gestão da interface
-        const loadingEl = document.getElementById('loading');
-        const statusEl = document.getElementById('status');
-        const instructionsEl = document.getElementById('instructions');
-        const sceneEl = document.querySelector('a-scene');
+        const { MindARThree } = window.MINDAR.IMAGE;
         
-        // Aguardar carregamento da cena
-        sceneEl.addEventListener('loaded', () => {
-            console.log('Cena carregada');
-            statusEl.textContent = 'Pronto! Procure o marcador...';
-            
-            setTimeout(() => {
-                loadingEl.classList.add('hidden');
-            }, 1000);
+        // Inicializar MindAR
+        mindarThree = new MindARThree({
+          container: document.getElementById('container'),
+          imageTargetSrc: createTargetImage(),
         });
         
-        // Eventos de detecção do marcador
-        const target = document.querySelector('[mindar-image-target]');
+        const { renderer: rend, scene: scn, camera: cam } = mindarThree;
+        renderer = rend;
+        scene = scn;
+        camera = cam;
         
-        if (target) {
-            // Quando o marcador é encontrado
-            target.addEventListener('targetFound', event => {
-                console.log('Marcador encontrado!');
-                statusEl.textContent = '✓ Marcador detetado!';
-                statusEl.classList.add('status-active');
-                instructionsEl.style.display = 'none';
-                
-                // Animação de entrada
-                const modelContainer = document.getElementById('model-container');
-                if (modelContainer) {
-                    modelContainer.setAttribute('animation', {
-                        property: 'scale',
-                        from: '0 0 0',
-                        to: '0.5 0.5 0.5',
-                        dur: 600,
-                        easing: 'easeOutBack'
-                    });
-                }
-            });
-            
-            // Quando o marcador é perdido
-            target.addEventListener('targetLost', event => {
-                console.log('Marcador perdido');
-                statusEl.textContent = 'Procurando marcador...';
-                statusEl.classList.remove('status-active');
-                instructionsEl.style.display = 'block';
-            });
-        }
+        // Adicionar luz
+        const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1);
+        scene.add(light);
         
-        // Tratamento de erros
-        sceneEl.addEventListener('arError', (event) => {
-            console.error('Erro AR:', event);
-            statusEl.textContent = '❌ Erro ao inicializar AR';
-            statusEl.style.background = 'rgba(150, 0, 0, 0.9)';
-            loadingEl.classList.add('hidden');
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6);
+        directionalLight.position.set(0, 5, 5);
+        scene.add(directionalLight);
+        
+        // Criar âncora para o modelo 3D
+        anchor = mindarThree.addAnchor(0);
+        
+        // Criar um cubo colorido animado
+        const geometry = new THREE.BoxGeometry(1, 1, 1);
+        const material = new THREE.MeshPhongMaterial({
+          color: 0x00ff00,
+          shininess: 100,
+        });
+        const cube = new THREE.Mesh(geometry, material);
+        cube.position.set(0, 0, 0);
+        cube.scale.set(0.5, 0.5, 0.5);
+        
+        // Adicionar arestas ao cubo
+        const edges = new THREE.EdgesGeometry(geometry);
+        const lineMaterial = new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 2 });
+        const wireframe = new THREE.LineSegments(edges, lineMaterial);
+        cube.add(wireframe);
+        
+        anchor.group.add(cube);
+        
+        // Adicionar esfera que orbita
+        const sphereGeometry = new THREE.SphereGeometry(0.15, 32, 32);
+        const sphereMaterial = new THREE.MeshPhongMaterial({
+          color: 0xff0000,
+          emissive: 0x440000,
+        });
+        const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+        sphere.position.set(0.8, 0, 0);
+        anchor.group.add(sphere);
+        
+        // Adicionar cone amarelo
+        const coneGeometry = new THREE.ConeGeometry(0.2, 0.5, 32);
+        const coneMaterial = new THREE.MeshPhongMaterial({
+          color: 0xffff00,
+          emissive: 0x444400,
+        });
+        const cone = new THREE.Mesh(coneGeometry, coneMaterial);
+        cone.position.set(0, 0.8, 0);
+        anchor.group.add(cone);
+        
+        clock = new THREE.Clock();
+        
+        // Eventos de detecção
+        anchor.onTargetFound = () => {
+          updateStatus('✓ Imagem detectada!', true);
+        };
+        
+        anchor.onTargetLost = () => {
+          updateStatus('Procurando imagem...');
+        };
+        
+        // Iniciar AR
+        await mindarThree.start();
+        updateStatus('Aponte a câmera para a imagem alvo');
+        
+        // Loop de animação
+        renderer.setAnimationLoop(() => {
+          const delta = clock.getDelta();
+          const elapsed = clock.getElapsedTime();
+          
+          // Animar cubo
+          cube.rotation.x = elapsed * 0.5;
+          cube.rotation.y = elapsed * 0.7;
+          
+          // Animar esfera orbitando
+          sphere.position.x = Math.cos(elapsed * 2) * 0.8;
+          sphere.position.z = Math.sin(elapsed * 2) * 0.8;
+          sphere.position.y = Math.sin(elapsed * 3) * 0.3;
+          
+          // Animar cone
+          cone.rotation.y = elapsed * 2;
+          cone.position.y = 0.8 + Math.sin(elapsed * 2) * 0.2;
+          
+          renderer.render(scene, camera);
         });
         
-        // Log de inicialização
-        console.log('MindAR Image Tracking inicializado');
-        console.log('Certifique-se de ter o arquivo solar.mind compilado');
-        
-        // Orientação do dispositivo
-        if (window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission === 'function') {
-            DeviceOrientationEvent.requestPermission()
-                .then(response => {
-                    if (response === 'granted') {
-                        console.log('Permissão de orientação concedida');
-                    }
-                })
-                .catch(console.error);
-        }
-    </script>
+      } catch (err) {
+        console.error('Erro ao inicializar AR:', err);
+        showError('Erro ao inicializar: ' + err.message);
+      }
+    }
+    
+    // Iniciar quando a página carregar
+    window.addEventListener('load', initAR);
+  </script>
 </body>
 </html>
