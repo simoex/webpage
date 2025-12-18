@@ -124,6 +124,16 @@
   </div>
   
   <div id="error" class="error"></div>
+  
+  <div class="instructions">
+    <h3>Como usar:</h3>
+    <ol>
+      <li>Certifique-se que o arquivo "solar.mind" está na mesma pasta que este HTML</li>
+      <li>Permita o acesso à câmera quando solicitado</li>
+      <li>Aponte a câmera para a imagem solar.jpg</li>
+      <li>Veja o modelo 3D aparecer sobre a imagem!</li>
+    </ol>
+  </div>
 
   <script>
     let mindarThree;
@@ -150,12 +160,22 @@
       try {
         updateStatus('Carregando bibliotecas...');
         
-        await new Promise(function(resolve) {
-          if (window.MINDAR && window.THREE) {
-            resolve();
-          } else {
-            setTimeout(resolve, 1000);
-          }
+        await new Promise(function(resolve, reject) {
+          let attempts = 0;
+          const maxAttempts = 20;
+          
+          const checkLibraries = function() {
+            attempts++;
+            if (window.MINDAR && window.MINDAR.IMAGE && window.THREE) {
+              resolve();
+            } else if (attempts >= maxAttempts) {
+              reject(new Error('Bibliotecas não carregaram. Recarregue a página.'));
+            } else {
+              setTimeout(checkLibraries, 500);
+            }
+          };
+          
+          checkLibraries();
         });
         
         updateStatus('Iniciando câmera...');
